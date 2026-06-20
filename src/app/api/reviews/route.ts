@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   if (slug && !token) {
     const { data: business } = await supabase
       .from('businesses')
-      .select('id, business_name, whatsapp_number, website_url, phone, address')
+      .select('id, business_name, whatsapp_number, website_url, phone, address, description, category, opening_hours, services, instagram, facebook')
       .eq('business_slug', slug)
       .single()
 
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       .eq('is_approved', true)
       .order('created_at', { ascending: false })
 
-    return NextResponse.json({ business_name: business.business_name, whatsapp_number: business.whatsapp_number, website_url: business.website_url, phone: business.phone, address: business.address, reviews })
+    return NextResponse.json({ business_name: business.business_name, whatsapp_number: business.whatsapp_number, website_url: business.website_url, phone: business.phone, address: business.address, description: business.description, category: business.category, opening_hours: business.opening_hours, services: business.services, instagram: business.instagram, facebook: business.facebook, reviews })
   }
 
   // Admin: get reviews by token

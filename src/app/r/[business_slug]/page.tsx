@@ -5,12 +5,18 @@ import { useEffect, useState } from 'react'
 
 export default function ShowcasePage() {
   const { business_slug } = useParams()
-  const [bizName, setBizName] = useState('Style Studio Salon')
-  const [reviews, setReviews] = useState<any[]>([{id:'1',customer_name:'Priya Sharma',rating:5,review_text:'Best salon in town! Got my bridal makeup done and it was stunning. Highly recommend!',created_at:'2026-06-15T10:30:00Z',is_approved:true},{id:'2',customer_name:'Rahul Verma',rating:4,review_text:'Great haircut and very professional staff. Will definitely come again.',created_at:'2026-06-14T15:20:00Z',is_approved:true},{id:'3',customer_name:'Ananya Patel',rating:5,review_text:'Love the new hairstyle! Ankush is a magician with scissors. ❤️',created_at:'2026-06-12T09:15:00Z',is_approved:true},{id:'4',customer_name:'Vikram Singh',rating:5,review_text:'Finally found my go-to barber. Clean, affordable, and great service.',created_at:'2026-06-10T18:45:00Z',is_approved:true},{id:'5',customer_name:'Neha Gupta',rating:4,review_text:'Good service overall. The manicure was perfect.',created_at:'2026-06-08T11:00:00Z',is_approved:true},{id:'6',customer_name:'Arjun Mehta',rating:3,review_text:'Decent place but waiting time was a bit long. Quality is good though.',created_at:'2026-06-05T14:30:00Z',is_approved:true}])
-  const [phone, setPhone] = useState('+91 98765 43210')
-  const [address, setAddress] = useState('42, MG Road, Opp. City Mall, Andheri West, Mumbai - 400058')
-  const [whatsapp, setWhatsapp] = useState('+919876543210')
-  const [website, setWebsite] = useState('https://stylestudiosalon.in')
+  const [bizName, setBizName] = useState('')
+  const [reviews, setReviews] = useState<any[]>([])
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [website, setWebsite] = useState('')
+  const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
+  const [openingHours, setOpeningHours] = useState('')
+  const [services, setServices] = useState('')
+  const [instagram, setInstagram] = useState('')
+  const [facebook, setFacebook] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -33,6 +39,12 @@ export default function ShowcasePage() {
         if (d.address) setAddress(d.address)
         if (d.whatsapp_number) setWhatsapp(d.whatsapp_number)
         if (d.website_url) setWebsite(d.website_url)
+        if (d.description) setDescription(d.description)
+        if (d.category) setCategory(d.category)
+        if (d.opening_hours) setOpeningHours(d.opening_hours)
+        if (d.services) setServices(d.services)
+        if (d.instagram) setInstagram(d.instagram)
+        if (d.facebook) setFacebook(d.facebook)
       }).catch(() => {})
     setMounted(true)
   }, [business_slug])
@@ -235,14 +247,28 @@ export default function ShowcasePage() {
               {bizName || 'Loading...'}
             </h1>
 
-            {/* Tagline */}
+            {/* Category badge */}
+            {category && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '4px 14px', borderRadius: 'var(--radius-pill)',
+                border: '1px solid rgba(0,168,132,0.15)',
+                background: 'rgba(0,168,132,0.06)',
+                margin: '0 0 16px',
+                animation: 'rw-fadeUp 0.6s var(--ease) 0.15s both',
+              }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: g, letterSpacing: '0.5px' }}>{category}</span>
+              </div>
+            )}
+
+            {/* Description */}
             <p style={{
               fontSize: 20, color: 'rgba(255,255,255,0.45)',
               lineHeight: 1.6, margin: '0 0 36px', maxWidth: 500,
               fontWeight: 400,
               animation: 'rw-fadeUp 0.6s var(--ease) 0.2s both',
             }}>
-              Real reviews from real customers. Share your experience in seconds.
+              {description || 'Real reviews from real customers. Share your experience in seconds.'}
             </p>
 
             {/* CTA buttons */}
@@ -463,6 +489,78 @@ export default function ShowcasePage() {
                 </a>
               )}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== SERVICES ===== */}
+      {services && (
+        <section style={{ padding: '40px 28px', background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#000', margin: '0 0 16px', letterSpacing: '-0.3px' }}>Services</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {services.split(',').map((s: string, i: number) => (
+                <span key={i} style={{
+                  padding: '8px 18px', borderRadius: 'var(--radius-pill)',
+                  background: 'rgba(0,168,132,0.06)',
+                  border: '1px solid rgba(0,168,132,0.1)',
+                  fontSize: 13, fontWeight: 500, color: '#000',
+                }}>
+                  {s.trim()}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== OPENING HOURS ===== */}
+      {openingHours && (
+        <section style={{ padding: '40px 28px', background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,168,132,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>🕐</div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.3)', letterSpacing: '0.3px', textTransform: 'uppercase', marginBottom: 4 }}>Opening hours</div>
+              <div style={{ fontSize: 14, color: 'rgba(0,0,0,0.7)', lineHeight: 1.5 }}>{openingHours}</div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== SOCIAL MEDIA ===== */}
+      {(instagram || facebook) && (
+        <section style={{ padding: '40px 28px', background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            {instagram && (
+              <a href={`https://instagram.com/${instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '12px 20px', borderRadius: 14,
+                background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
+                color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 600,
+                transition: 'all 250ms var(--ease)',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(188,24,136,0.3)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                <span style={{ fontSize: 18 }}>📷</span>
+                {instagram.startsWith('@') ? instagram : `@${instagram}`}
+              </a>
+            )}
+            {facebook && (
+              <a href={facebook.startsWith('http') ? facebook : `https://facebook.com/${facebook}`} target="_blank" rel="noopener noreferrer" style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '12px 20px', borderRadius: 14,
+                background: '#1877f2',
+                color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 600,
+                transition: 'all 250ms var(--ease)',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(24,119,242,0.3)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                <span style={{ fontSize: 18 }}>👍</span>
+                Facebook
+              </a>
+            )}
           </div>
         </section>
       )}

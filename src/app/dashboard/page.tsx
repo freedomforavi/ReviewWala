@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
 interface Review { id: string; created_at: string; customer_name: string; rating: number; review_text: string; is_approved: boolean; source: string }
-interface Business { id: string; business_name: string; business_slug: string; email: string; plan_tier: string; whatsapp_number?: string; website_url?: string; phone?: string; address?: string }
+interface Business { id: string; business_name: string; business_slug: string; email: string; plan_tier: string; whatsapp_number?: string; website_url?: string; phone?: string; address?: string; description?: string; category?: string; opening_hours?: string; services?: string; instagram?: string; facebook?: string }
 
 function DashboardInner() {
   const sp = useSearchParams(); const router = useRouter()
@@ -14,7 +14,7 @@ function DashboardInner() {
   const [loading, setLoading] = useState(true); const [copied, setCopied] = useState('')
   const [tab, setTab] = useState<'pending' | 'approved' | 'profile' | 'showcase'>('pending')
   const [origin, setOrigin] = useState('')
-  const [profileForm, setProfileForm] = useState({ phone: '', address: '', whatsapp_number: '', website_url: '' })
+  const [profileForm, setProfileForm] = useState({ phone: '', address: '', whatsapp_number: '', website_url: '', description: '', category: '', opening_hours: '', services: '', instagram: '', facebook: '' })
   const [saving, setSaving] = useState(false); const [saved, setSaved] = useState(false)
 
   useEffect(() => { setOrigin(window.location.origin) }, [])
@@ -29,6 +29,12 @@ function DashboardInner() {
           address: d.business.address || '',
           whatsapp_number: d.business.whatsapp_number || '',
           website_url: d.business.website_url || '',
+          description: d.business.description || '',
+          category: d.business.category || '',
+          opening_hours: d.business.opening_hours || '',
+          services: d.business.services || '',
+          instagram: d.business.instagram || '',
+          facebook: d.business.facebook || '',
         })
       }
       if (d.reviews) setReviews(d.reviews)
@@ -410,22 +416,42 @@ function DashboardInner() {
 
             {[
               { key: 'phone', label: 'Phone number', placeholder: '+91 9876543210', type: 'tel' },
-              { key: 'whatsapp_number', label: 'WhatsApp number (for contact button)', placeholder: '+919876543210', type: 'tel' },
+              { key: 'whatsapp_number', label: 'WhatsApp number (for contact button)', placeholder: '+919****3210', type: 'tel' },
               { key: 'address', label: 'Address', placeholder: '123, Main Road, Mumbai - 400001', type: 'text' },
               { key: 'website_url', label: 'Website URL', placeholder: 'https://example.com', type: 'url' },
+              { key: 'description', label: 'Business description / tagline', placeholder: 'We are a grooming salon in Andheri...', type: 'textarea' },
+              { key: 'category', label: 'Category / Industry', placeholder: 'Salon, Restaurant, Electronics, etc.', type: 'text' },
+              { key: 'opening_hours', label: 'Opening hours', placeholder: 'Mon-Sat: 9:00 AM – 9:00 PM, Sun: 10:00 AM – 6:00 PM', type: 'text' },
+              { key: 'services', label: 'Services offered (comma separated)', placeholder: 'Haircut, Manicure, Facial, Bridal Makeup', type: 'text' },
+              { key: 'instagram', label: 'Instagram username', placeholder: '@your_business', type: 'text' },
+              { key: 'facebook', label: 'Facebook page URL', placeholder: 'https://facebook.com/yourpage', type: 'url' },
             ].map(f => (
               <div key={f.key} style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: muted, marginBottom: 4, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{f.label}</label>
-                <input type={f.type} value={(profileForm as any)[f.key]} onChange={e => updatePF(f.key, e.target.value)}
-                  placeholder={f.placeholder}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, boxSizing: 'border-box',
-                    border: '1px solid rgba(255,255,255,0.08)', fontSize: 13, color: text,
-                    background: 'rgba(17,27,33,0.6)', outline: 'none', fontFamily: 'inherit',
-                    transition: 'all 200ms',
-                  }}
-                  onFocus={e => { e.currentTarget.style.borderColor = green; e.currentTarget.style.boxShadow = `0 0 0 3px rgba(0,168,132,0.1)` }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none' }}
-                />
+                {f.type === 'textarea' ? (
+                  <textarea value={(profileForm as any)[f.key]} onChange={e => updatePF(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                    rows={3}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 12, boxSizing: 'border-box',
+                      border: '1px solid rgba(255,255,255,0.08)', fontSize: 13, color: text,
+                      background: 'rgba(17,27,33,0.6)', outline: 'none', fontFamily: 'inherit', resize: 'vertical',
+                      transition: 'all 200ms',
+                    }}
+                    onFocus={e => { e.currentTarget.style.borderColor = green; e.currentTarget.style.boxShadow = `0 0 0 3px rgba(0,168,132,0.1)` }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none' }}
+                  />
+                ) : (
+                  <input type={f.type} value={(profileForm as any)[f.key]} onChange={e => updatePF(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 12, boxSizing: 'border-box',
+                      border: '1px solid rgba(255,255,255,0.08)', fontSize: 13, color: text,
+                      background: 'rgba(17,27,33,0.6)', outline: 'none', fontFamily: 'inherit',
+                      transition: 'all 200ms',
+                    }}
+                    onFocus={e => { e.currentTarget.style.borderColor = green; e.currentTarget.style.boxShadow = `0 0 0 3px rgba(0,168,132,0.1)` }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none' }}
+                  />
+                )}
               </div>
             ))}
 

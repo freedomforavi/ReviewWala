@@ -2,7 +2,7 @@ import { createClient, createServiceClient } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function PATCH(req: NextRequest) {
-  const { token, phone, address, whatsapp_number, website_url, business_name } = await req.json()
+  const { token, phone, address, whatsapp_number, website_url, business_name, description, category, opening_hours, services, instagram, facebook } = await req.json()
 
   if (!token) {
     return NextResponse.json({ error: 'Token required' }, { status: 401 })
@@ -28,6 +28,12 @@ export async function PATCH(req: NextRequest) {
   if (whatsapp_number !== undefined) updates.whatsapp_number = whatsapp_number
   if (website_url !== undefined) updates.website_url = website_url
   if (business_name !== undefined) updates.business_name = business_name
+  if (description !== undefined) updates.description = description
+  if (category !== undefined) updates.category = category
+  if (opening_hours !== undefined) updates.opening_hours = opening_hours
+  if (services !== undefined) updates.services = services
+  if (instagram !== undefined) updates.instagram = instagram
+  if (facebook !== undefined) updates.facebook = facebook
 
   const { error } = await supabase
     .from('businesses')
