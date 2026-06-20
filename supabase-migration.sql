@@ -6,6 +6,8 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- ===== TABLES FIRST =====
+
 -- Businesses table
 CREATE TABLE IF NOT EXISTS businesses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -23,7 +25,7 @@ CREATE TABLE IF NOT EXISTS businesses (
 
 ALTER TABLE businesses ENABLE ROW LEVEL SECURITY;
 
--- Add phone and address columns if table already exists
+-- Add phone, password_hash, address columns if table already existed
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT '';
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS password_hash TEXT NOT NULL DEFAULT '';
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS address TEXT;
@@ -45,16 +47,29 @@ CREATE TABLE IF NOT EXISTS reviews (
 
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
--- Indexes
+-- Session/business tokens for simple auth
+CREATE TABLE IF NOT EXISTS business_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  token TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE business_tokens ENABLE ROW LEVEL SECURITY;
+
+-- ===== INDEXES =====
+
 CREATE INDEX IF NOT EXISTS idx_reviews_business_id ON reviews(business_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(is_approved);
 CREATE INDEX IF NOT EXISTS idx_businesses_slug ON businesses(business_slug);
+
+-- ===== RLS POLICIES (after all tables exist) =====
 
 -- RLS: businesses can only read/update their own data
 CREATE POLICY "businesses_own"
   ON businesses
   FOR ALL
-  USING (id = (SELECT business_id FROM business_tokens WHERE token = current_setting('app.token', TRUE)::UUID));
+  USING (id = (SELECT business_id FROM business_tokens WHERE token = current_setting('app.token', TRUE)));
 
 -- RLS: anyone can insert reviews
 CREATE POLICY "reviews_insert"
@@ -63,7 +78,7 @@ CREATE POLICY "reviews_insert"
   TO public
   WITH CHECK (true);
 
--- RLS: businesses can read their own approved reviews
+-- RLS: public can read approved reviews
 CREATE POLICY "reviews_select_approved"
   ON reviews
   FOR SELECT
@@ -74,14 +89,4 @@ CREATE POLICY "reviews_select_approved"
 CREATE POLICY "reviews_manage"
   ON reviews
   FOR ALL
-  USING (business_id = (SELECT business_id FROM business_tokens WHERE token = current_setting('app.token', TRUE)::UUID));
-
--- Session/business tokens for simple auth (no password flow for MVP)
-CREATE TABLE IF NOT EXISTS business_tokens (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
-  token TEXT NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-ALTER TABLE business_tokens ENABLE ROW LEVEL SECURITY;
+  USING (business_id = (SELECT business_id FROM business_tokens WHERE token = current_setting('app.token', TRUE)));

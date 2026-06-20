@@ -85,8 +85,9 @@ export async function POST(req: NextRequest) {
     })
   } catch (err: any) {
     console.error('Signup error:', err)
+    const message = err?.message || err?.toString() || 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to create account. Please try again.' },
+      { error: message },
       { status: 500 }
     )
   }
