@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 
 export default function LandingPage() {
   const router = useRouter()
+  const [mode, setMode] = useState<'signup' | 'login'>('signup')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [businessName, setBusinessName] = useState('')
@@ -49,6 +50,20 @@ export default function LandingPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong')
+      router.push(`/dashboard?token=${data.token}&business=${data.business_slug}`)
+    } catch (err: any) { setError(err.message) }
+    finally { setLoading(false) }
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault(); setLoading(true); setError('')
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Login failed')
       router.push(`/dashboard?token=${data.token}&business=${data.business_slug}`)
     } catch (err: any) { setError(err.message) }
     finally { setLoading(false) }
@@ -490,20 +505,42 @@ export default function LandingPage() {
             transform: v('signup-s') === '1' ? 'translateY(0)' : 'translateY(20px)',
             textAlign: 'center',
           }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: g, letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 12px' }}>Shuru karein</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: g, letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 12px' }}>{mode === 'signup' ? 'Shuru karein' : 'Welcome back'}</p>
             <h2 style={{ fontSize: 36, fontWeight: 700, color: '#fff', margin: '0 0 8px', letterSpacing: '-1px' }}>
-              Free account banayein
+              {mode === 'signup' ? 'Free account banayein' : 'Login karein'}
             </h2>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', margin: '0 0 36px' }}>
-              Koi credit card nahi. Koi code nahi. 30 second.
+              {mode === 'signup' ? 'Koi credit card nahi. Koi code nahi. 30 second.' : 'Apne account mein jayein.'}
             </p>
+          </div>
+
+          {/* Mode Toggle */}
+          <div style={{ display: 'flex', gap: 0, marginBottom: 24, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4 }}>
+            <button type="button" onClick={() => { setMode('signup'); setError(''); setPassword(''); setRePassword('') }}
+              style={{
+                flex: 1, padding: '10px', borderRadius: 10, border: 'none',
+                background: mode === 'signup' ? g : 'transparent',
+                color: mode === 'signup' ? '#fff' : 'rgba(255,255,255,0.5)',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                transition: 'all 200ms', fontFamily: 'inherit',
+              }}
+            >Sign Up</button>
+            <button type="button" onClick={() => { setMode('login'); setError(''); setPassword('') }}
+              style={{
+                flex: 1, padding: '10px', borderRadius: 10, border: 'none',
+                background: mode === 'login' ? g : 'transparent',
+                color: mode === 'login' ? '#fff' : 'rgba(255,255,255,0.5)',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                transition: 'all 200ms', fontFamily: 'inherit',
+              }}
+            >Login</button>
           </div>
 
           <div style={{
             background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 36,
             border: '1px solid rgba(255,255,255,0.08)',
           }}>
-            <form onSubmit={handleSignup}>
+            <form onSubmit={mode === 'signup' ? handleSignup : handleLogin}>
               <div style={{ marginBottom: 16 }}>
                 <label style={{
                   display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)',
@@ -521,6 +558,7 @@ export default function LandingPage() {
                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
+              {mode === 'signup' && (
               <div style={{ marginBottom: 16 }}>
                 <label style={{
                   display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)',
@@ -538,6 +576,8 @@ export default function LandingPage() {
                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
+              )}
+              {mode === 'signup' && (
               <div style={{ marginBottom: 16 }}>
                 <label style={{
                   display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)',
@@ -555,6 +595,7 @@ export default function LandingPage() {
                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
+              )}
               <div style={{ marginBottom: 16 }}>
                 <label style={{
                   display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)',
@@ -572,6 +613,7 @@ export default function LandingPage() {
                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
+              {mode === 'signup' && (
               <div style={{ marginBottom: 24 }}>
                 <label style={{
                   display: 'block', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)',
@@ -589,6 +631,7 @@ export default function LandingPage() {
                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
+              )}
 
               {error && (
                 <div style={{
@@ -607,7 +650,9 @@ export default function LandingPage() {
               }}
                 onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = '#00c392'; e.currentTarget.style.transform = 'translateY(-1px)' } }}
                 onMouseLeave={e => { if (!loading) { e.currentTarget.style.background = g; e.currentTarget.style.transform = 'translateY(0)' } }}
-              >{loading ? 'Account bana rahe hain...' : 'Free account banayein'}</button>
+              >{loading
+                ? (mode === 'signup' ? 'Account bana rahe hain...' : 'Login ho raha hai...')
+                : (mode === 'signup' ? 'Free account banayein' : 'Login karein')}</button>
             </form>
           </div>
         </div>
