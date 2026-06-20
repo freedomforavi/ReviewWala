@@ -1,0 +1,155 @@
+'use client'
+
+import { useParams } from 'next/navigation'
+import { useEffect, useState, useRef } from 'react'
+
+export default function ShowcasePage() {
+  const { business_slug } = useParams()
+  const [bizName, setBizName] = useState('')
+  const [reviews, setReviews] = useState<any[]>([])
+  const [showForm, setShowForm] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  // Form state
+  const [name, setName] = useState('')
+  const [rating, setRating] = useState(0)
+  const [hover, setHover] = useState(0)
+  const [text, setText] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  useEffect(() => {
+    if (!business_slug) return
+    fetch(`/api/reviews?slug=${business_slug}`)
+      .then(r => r.json()).then(d => {
+        if (d.reviews) setReviews(d.reviews)
+        if (d.business_name) setBizName(d.business_name)
+      }).catch(() => {})
+  }, [business_slug])
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 30)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name.trim() || !text.trim() || rating === 0) { setError('Fill all fields'); return }
+    setLoading(true); setError('')
+    try {
+      const r = await fetch('/api/submit-review', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_slug, customer_name: name, rating, review_text: text, source: 'link' })
+      })
+      if (!r.ok) throw new Error('Failed')
+      setSubmitted(true)
+    } catch { setError('Try again.') }
+    finally { setLoading(false) }
+  }
+
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : '0.0'
+
+  const g = '#00a884'
+  const starFull = '#f59e0b'
+
+  if (submitted) return (
+    <div style={{ fontFamily: 'var(--font-sans)', background: '#000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ textAlign: 'center', maxWidth: 400 }}>
+        <div style={{ fontSize: 64, marginBottom: 20, lineHeight: 1 }}>🙏</div>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#fff', margin: '0 0 8px', letterSpacing: '-0.5px' }}>Thank you!</h1>
+        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', margin: '0 0 24px', lineHeight: 1.6 }}>
+          Your review for <strong style={{ color: '#fff' }}>{bizName}</strong> has been received. It will appear after the business reviews it.
+        </p>
+        <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(0,168,132,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '1px solid rgba(0,168,132,0.2)' }}>
+          <span style={{ color: g, fontSize: 24 }}>✓</span>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{ fontFamily: 'var(--font-sans)', background: '#fff', minHeight: '100vh', color: '#000', overflowX: 'hidden' }}>
+
+      {/* ===== NAV ===== */}
+      <header style={{
+        position: 'fixed', top: 0, width: '100%', zIndex: 50,
+        background: scrolled ? 'rgba(255,255,255,0.95)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(12px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : '1px solid transparent',
+        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+      }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: g, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>R</div>
+            <span style={{ fontWeight: 600, fontSize: 14, color: scrolled ? '#000' : '#fff', transition: 'color 200ms', letterSpacing: '-0.2px' }}>{bizName || 'Business'}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            {reviews.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ color: starFull, fontSize: 12 }}>★</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: scrolled ? '#000' : 'rgba(255,255,255,0.8)', transition: 'color 200ms' }}>{avgRating}</span>
+                <span style={{ fontSize: 12, color: scrolled ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)', transition: 'color 200ms' }}>({reviews.length})</span>
+              </div>
+            )}
+            <button onClick={() => setShowForm(true)} style={{ padding: '7px 18px', borderRadius: 9999, border: 'none', background: g, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 200ms', fontFamily: 'inherit', }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#00c392'; e.currentTarget.style.transform = 'scale(1.03)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = g; e.currentTarget.style.transform = 'scale(1)' }}
+            >Leave a review</button>
+          </div>
+        </div>
+      </header>
+
+      {/* ===== HERO ===== */}
+      <section style={{ background: '#000', minHeight: '70vh', display: 'flex', alignItems: 'center', padding: '120px 24px 80px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-50%', right: '-20%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,168,132,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-30%', left: '-10%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,211,102,0.04) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1100, margin: '0 auto', width: '100%', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: 600 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px 5px 10px', borderRadius: 9999, border: '1px solid rgba(0,168,132,0.2)', background: 'rgba(0,168,132,0.07)', marginBottom: 24 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#25d366', animation: 'rw-pulse 2s infinite', display: 'inline-block' }} />
+              <span style={{ fontSize: 11, fontWeight: 600, color: g, letterSpacing: '0.4px' }}>{reviews.length > 0 ? `${reviews.length} reviews · ${avgRating} avg rating` : 'Verified business'}</span>
+            </div>
+            <h1 style={{ fontSize: 52, fontWeight: 700, lineHeight: 1.08, margin: '0 0 12px', letterSpacing: '-1.5px', color: '#fff' }}>{bizName || 'Loading...'}</h1>
+            <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: '0 0 28px', maxWidth: 440 }}>
+              Read what customers are saying about <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{bizName}</strong>. Share your experience too.
+            </p>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => setShowForm(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 32px', borderRadius: 9999, border: 'none', background: g, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', textDecoration: 'none', transition: 'all 250ms cubic-bezier(0.2, 0, 0, 1)', fontFamily: 'inherit', }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#00c392'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = g; e.currentTarget.style.transform = 'translateY(0)' }}
+              ><span>Write a review</span><span style={{ fontSize: 18, lineHeight: 1 }}>→</span></button>
+              {reviews.length > 0 && (
+                <a href="#reviews" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '14px 24px', borderRadius: 9999, border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 500, cursor: 'pointer', textDecoration: 'none', transition: 'all 200ms', }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = '#fff' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+                >Read reviews ({reviews.length})</a>
+              )}
+            </div>
+            {reviews.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 40 }}>
+                <div style={{ display: 'flex', gap: 3 }}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <span key={n} style={{ color: n <= Math.round(Number(avgRating)) ? starFull : 'rgba(255,255,255,0.1)', fontSize: 20, letterSpacing: '1px' }}>★</span>
+                  ))}
+                </div>
+                <div><span style={{ fontSize: 28, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' }}>{avgRating}</span><span style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', marginLeft: 4 }}>/ 5</span></div>
+                <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)' }} />
+                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>{reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== REVIEWS ===== */}
+      <section id="reviews" style={{ padding: '80px 24px 100px', background: '#f8f8f8' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 52 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: g, letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 10px' }}>Customer reviews</p>
+            <h2 style={{ fontSize: 36, fontWeight: 700, margin: '0 auto', maxWidth: 450, letterSpacing: '-1px', lineHeight: 1.15 }}>What people say about {bizName}</h2>
+          </div>
