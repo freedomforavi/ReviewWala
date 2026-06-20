@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { createClient, createServiceClient } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
@@ -6,7 +6,9 @@ export async function GET(req: NextRequest) {
   const slug = searchParams.get('slug')
   const token = searchParams.get('token')
 
-  const supabase = createClient()
+  // Public (no token): use anon key with RLS
+  // Admin (with token): use service_role key to bypass RLS on business_tokens
+  const supabase = token ? createServiceClient() : createClient()
 
   // Public: get approved reviews by slug (for widget)
   if (slug && !token) {

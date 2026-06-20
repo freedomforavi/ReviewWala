@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { createClient, createServiceClient } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function PATCH(req: NextRequest) {
@@ -8,7 +8,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Token required' }, { status: 401 })
   }
 
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   // Verify token and get business_id
   const { data: tokenRow } = await supabase
