@@ -84,6 +84,13 @@ CREATE POLICY "businesses_own"
   FOR ALL
   USING (id = (SELECT business_id FROM business_tokens WHERE token = current_setting('app.token', TRUE)));
 
+-- RLS: public can read business info for showcase page
+CREATE POLICY "businesses_select_public"
+  ON businesses
+  FOR SELECT
+  TO public
+  USING (true);
+
 -- RLS: anyone can insert reviews
 CREATE POLICY "reviews_insert"
   ON reviews
