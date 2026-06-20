@@ -12,7 +12,7 @@ function DashboardInner() {
   const [b, setB] = useState<Business | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true); const [copied, setCopied] = useState('')
-  const [tab, setTab] = useState<'pending' | 'approved' | 'profile'>('pending')
+  const [tab, setTab] = useState<'pending' | 'approved' | 'profile' | 'showcase'>('pending')
   const [origin, setOrigin] = useState('')
   const [profileForm, setProfileForm] = useState({ phone: '', address: '', whatsapp_number: '', website_url: '' })
   const [saving, setSaving] = useState(false); const [saved, setSaved] = useState(false)
@@ -240,7 +240,7 @@ function DashboardInner() {
           border: '1px solid rgba(255,255,255,0.06)',
           display: 'flex', gap: 0, marginBottom: 14,
         }}>
-          {(['pending', 'approved', 'profile'] as const).map(t => (
+          {(['pending', 'approved', 'showcase', 'profile'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
               flex: 1, padding: '10px', border: 'none', cursor: 'pointer',
               fontSize: 13, fontWeight: 600, borderRadius: 11,
@@ -248,7 +248,7 @@ function DashboardInner() {
               color: tab === t ? '#fff' : muted,
               transition: 'all 250ms cubic-bezier(0.2, 0, 0, 1)',
               fontFamily: 'inherit',
-            }}>{t === 'pending' ? `Pending (${pending.length})` : `Approved (${approved.length})`}</button>
+            }}>{t === 'pending' ? `Pending (${pending.length})` : t === 'approved' ? `Approved (${approved.length})` : t === 'showcase' ? '✨ Showcase' : '⚙️ Profile'}</button>
           ))}
         </div>
 
@@ -342,6 +342,61 @@ function DashboardInner() {
                   </div>
                 ))}
               </div>
+        )}
+
+        {/* Showcase Tab */}
+        {tab === 'showcase' && (
+          <div style={{ ...glass(), borderRadius: 16, padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 16 }}>✨</span>
+              <h3 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>Your showcase page</h3>
+            </div>
+            <p style={{ fontSize: 12, color: muted, margin: '2px 0 20px', paddingLeft: 24 }}>
+              This is what your customers see when they open the review link.
+            </p>
+
+            <a href={rl} target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '12px', borderRadius: 12, border: 'none',
+                background: 'rgba(0,168,132,0.12)', color: green, fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', textDecoration: 'none', marginBottom: 16,
+                transition: 'all 200ms',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,168,132,0.2)'; e.currentTarget.style.gap = '12px' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,168,132,0.12)'; e.currentTarget.style.gap = '8px' }}
+            >🔗 Open showcase page in new tab →</a>
+
+            {/* Reviews preview */}
+            {approved.length === 0 && pending.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', background: 'rgba(17,27,33,0.6)', borderRadius: 12 }}>
+                <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.4 }}>📭</div>
+                <p style={{ fontSize: 13, color: muted, margin: 0 }}>No reviews yet. Share your link to start collecting reviews.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: muted, marginBottom: 2, letterSpacing: '0.3px', textTransform: 'uppercase' }}>Published reviews</div>
+                {[...approved].reverse().slice(0, 5).map(r => (
+                  <div key={r.id} style={{
+                    background: 'rgba(17,27,33,0.6)', borderRadius: 12, padding: '14px 16px',
+                    border: '1px solid rgba(255,255,255,0.04)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        background: 'rgba(0,168,132,0.15)', color: green,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 11, fontWeight: 700,
+                      }}>{r.customer_name.charAt(0).toUpperCase()}</div>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>{r.customer_name}</span>
+                      <span style={{ color: '#f59e0b', fontSize: 13, marginLeft: 'auto', letterSpacing: '1px' }}>{'★'.repeat(r.rating)}</span>
+                    </div>
+                    <p style={{ fontSize: 13, color: muted, margin: 0, lineHeight: 1.5, paddingLeft: 36 }}>{r.review_text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Profile Tab */}
